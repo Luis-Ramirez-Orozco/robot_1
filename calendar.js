@@ -125,10 +125,11 @@
     overlay.innerHTML =
       '<div class="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="phone-title">' +
       '  <div class="calendar-modal-header">' +
-      '    <h2 id="phone-title">Your Phone Number</h2>' +
+      '    <h2 id="phone-title">Your Contact Info</h2>' +
       '    <button type="button" class="calendar-close" id="phone-close" aria-label="Close">&times;</button>' +
       "  </div>" +
       '  <p class="phone-helper">So we can reach out and confirm the details with you.</p>' +
+      '  <input type="text" id="name-input" class="phone-input" placeholder="Your name" autocomplete="name" />' +
       '  <input type="tel" id="phone-input" class="phone-input" placeholder="(555) 123-4567" autocomplete="tel" />' +
       '  <div class="calendar-footer">' +
       '    <span id="phone-error" class="phone-error"></span>' +
@@ -182,6 +183,7 @@
 
     var phoneOverlay = buildPhoneModal();
     var phoneClose = phoneOverlay.querySelector("#phone-close");
+    var nameInput = phoneOverlay.querySelector("#name-input");
     var phoneInput = phoneOverlay.querySelector("#phone-input");
     var phoneError = phoneOverlay.querySelector("#phone-error");
     var phoneSend = phoneOverlay.querySelector("#phone-send");
@@ -260,6 +262,7 @@
       addonsCheckboxes.forEach(function (checkbox) { checkbox.checked = false; });
       renderAddonsButton();
       renderAddonsTotal();
+      nameInput.value = "";
       phoneInput.value = "";
       phoneError.textContent = "";
     }
@@ -318,7 +321,7 @@
       phoneError.textContent = "";
       phoneOverlay.classList.add("is-open");
       phoneOverlay.setAttribute("aria-hidden", "false");
-      phoneInput.focus();
+      nameInput.focus();
     }
 
     function closePhone() {
@@ -342,7 +345,7 @@
       if (thankYouLastFocused && thankYouLastFocused.focus) thankYouLastFocused.focus();
     }
 
-    function buildMailto(phone) {
+    function buildMailto(name, phone) {
       var subject = "New Booking Inquiry" +
         (selectedDate ? " — " + selectedDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "");
 
@@ -364,6 +367,7 @@
       lines.push("");
       lines.push("Estimated total: $" + grandTotal);
       lines.push("");
+      lines.push("Customer name: " + name);
       lines.push("Customer phone: " + phone);
 
       return "mailto:" + OWNER_EMAIL +
@@ -411,17 +415,26 @@
     phoneOverlay.addEventListener("click", function (e) {
       if (e.target === phoneOverlay) closePhone();
     });
+    nameInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") phoneSend.click();
+    });
     phoneInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") phoneSend.click();
     });
     phoneSend.addEventListener("click", function () {
+      var name = nameInput.value.trim();
+      if (!name) {
+        phoneError.textContent = "Please enter your name.";
+        nameInput.focus();
+        return;
+      }
       var digits = phoneInput.value.replace(/\D/g, "");
       if (digits.length < 7) {
         phoneError.textContent = "Please enter a valid phone number.";
         phoneInput.focus();
         return;
       }
-      window.location.href = buildMailto(phoneInput.value.trim());
+      window.location.href = buildMailto(name, phoneInput.value.trim());
       closePhone();
       closeCalendar();
       openThankYou();

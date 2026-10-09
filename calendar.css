@@ -326,6 +326,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 0.75rem;
   background: #101010;
