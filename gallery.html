@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gallery — Your Website Title</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="calendar.css" />
+<style>
+  html, body { margin: 0; min-height: 100%; background: #101010; color: #ececec; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+  .page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+    padding: 1.25rem 1.75rem 0.5rem;
+  }
+
+  .page-nav .site-title {
+    color: #ececec;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
+  .page-nav .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .page-nav .nav-links a {
+    color: #ececec;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    white-space: nowrap;
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.75rem 6rem;
+  }
+
+  .gallery-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    text-align: left;
+  }
+
+  .gallery-video {
+    position: relative;
+    flex: 0 0 340px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .gallery-video video {
+    display: block;
+    width: 100%;
+  }
+
+  .gallery-video-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    transform: translateY(-50%);
+    border: none;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #ececec;
+    cursor: pointer;
+  }
+
+  .gallery-video-nav:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .gallery-video-prev {
+    left: 0.6rem;
+  }
+
+  .gallery-video-next {
+    right: 0.6rem;
+  }
+
+  .gallery-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-auto-rows: min-content;
+    gap: 0.625rem;
+  }
+
+  .gallery-thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .gallery-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  .gallery-thumb:hover img {
+    transform: scale(1.04);
+  }
+
+  /* --- Photo lightbox, reusing the calendar popup's look ---------------- */
+
+  .photo-lightbox-modal {
+    position: relative;
+    max-width: min(92vw, 900px);
+    width: auto;
+    padding: 0.75rem;
+  }
+
+  .photo-lightbox-modal img {
+    display: block;
+    width: 100%;
+    max-height: 80vh;
+    border-radius: 0.75rem;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .photo-lightbox-modal .calendar-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .photo-lightbox-modal .calendar-close:hover {
+    background: rgba(0, 0, 0, 0.75);
+  }
+
+  @media (max-width: 768px) {
+    .gallery-layout {
+      flex-direction: column;
+    }
+    .gallery-video {
+      flex-basis: auto;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .gallery-grid {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav class="page-nav">
+  <a class="site-title" href="index.html">[Site Title]</a>
+  <div class="nav-links">
+    <a href="gallery.html">Gallery</a>
+    <a href="about.html">About Us</a>
+    <a href="#" id="book-now-link">Book Now</a>
+  </div>
+</nav>
+
+<main>
+  <div class="gallery-layout">
+    <div class="gallery-video">
+      <button type="button" class="gallery-video-nav gallery-video-prev" id="gallery-video-prev" aria-label="Previous video">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <video id="gallery-video-player" controls loop autoplay muted preload="auto" playsinline>
+        <source src="images/Gallery/part-1-portrait.mp4" id="gallery-video-source" />
+        Your browser doesn't support this video. <a href="images/Gallery/flip-it.mov">Download it</a> instead.
+      </video>
+      <button type="button" class="gallery-video-nav gallery-video-next" id="gallery-video-next" aria-label="Next video">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="gallery-grid">
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_0019.jpeg">
+        <img src="images/Gallery/web/IMG_0019.jpg" alt="Robot in LED costume, photo 1" loading="lazy" />
+      </button>
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_0025.jpeg">
+        <img src="images/Gallery/web/IMG_0025.jpg" alt="Robot in LED costume, photo 2" loading="lazy" />
+      </button>
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_0079.jpeg">
+        <img src="images/Gallery/web/IMG_0079.jpg" alt="Robot in LED costume, photo 3" loading="lazy" />
+      </button>
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_1746.jpeg">
+        <img src="images/Gallery/web/IMG_1746.jpg" alt="Robot in LED costume, photo 4" loading="lazy" />
+      </button>
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_0239.JPG">
+        <img src="images/Gallery/web/IMG_0239.jpg" alt="Robot in LED costume, photo 5" loading="lazy" />
+      </button>
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_3250.JPG">
+        <img src="images/Gallery/web/IMG_3250.jpg" alt="Robot in LED costume, photo 6" loading="lazy" />
+      </button>
+      <button type="button" class="gallery-thumb" data-full="images/Gallery/Resized_20240720_223955_1721599679144.jpeg">
+        <img src="images/Gallery/web/Resized_20240720_223955_1721599679144.jpg" alt="Robot in LED costume, photo 7" loading="lazy" />
+      </button>
+    </div>
+  </div>
+</main>
+
+<div id="photo-lightbox" class="calendar-overlay" aria-hidden="true">
+  <div class="calendar-modal photo-lightbox-modal" role="dialog" aria-modal="true" aria-label="Photo preview">
+    <button type="button" class="calendar-close" id="photo-lightbox-close" aria-label="Close">&times;</button>
+    <img id="photo-lightbox-img" src="" alt="" />
+  </div>
+</div>
+
+<script src="calendar.js"></script>
+<script>
+(function () {
+  // Add more clips here as they're added to images/Gallery/.
+  var VIDEOS = [
+    "images/Gallery/part-1-portrait.mp4",
+    "images/Gallery/flip-it.mov",
+    "images/Gallery/IMG_8820.mov",
+    "images/Gallery/IMG_8845.mov",
+    "images/Gallery/IMG_8856.mov",
+    "images/Gallery/IMG_8860.mov",
+    "images/Gallery/4D968CE4-E919-4CEE-B43B-03461EC7D490.mov",
+    "images/Gallery/8A2AC100-7095-48B0-B978-5747D18BD2F8.mov",
+    "images/Gallery/B8912D52-BAEF-49B2-9618-E8B45B779DFA.mov",
+    "images/Gallery/IMG_0052.mov",
+    "images/Gallery/IMG_0055.MOV",
+    "images/Gallery/IMG_1360.MOV",
+    "images/Gallery/IMG_7364.mov",
+    "images/Gallery/IMG_7365.MOV",
+    "images/Gallery/IMG_7907.mov",
+    "images/Gallery/IMG_7908.mov",
+    "images/Gallery/IMG_7909.mov",
+    "images/Gallery/IMG_7916.mov"
+  ];
+  var index = 0;
+
+  var video = document.getElementById("gallery-video-player");
+  var source = document.getElementById("gallery-video-source");
+  var prevBtn = document.getElementById("gallery-video-prev");
+  var nextBtn = document.getElementById("gallery-video-next");
+
+  function show(i) {
+    index = (i + VIDEOS.length) % VIDEOS.length;
+    source.src = VIDEOS[index];
+    video.load();
+    video.play().catch(function () {});
+  }
+
+  prevBtn.addEventListener("click", function () { show(index - 1); });
+  nextBtn.addEventListener("click", function () { show(index + 1); });
+
+  // Photo lightbox: opens full-res images in-page instead of a new tab.
+  var lightbox = document.getElementById("photo-lightbox");
+  var lightboxImg = document.getElementById("photo-lightbox-img");
+  var lightboxClose = document.getElementById("photo-lightbox-close");
+  var thumbs = Array.prototype.slice.call(document.querySelectorAll(".gallery-thumb"));
+  var lightboxLastFocused = null;
+
+  function openLightbox(fullSrc, alt) {
+    lightboxLastFocused = document.activeElement;
+    lightboxImg.src = fullSrc;
+    lightboxImg.alt = alt || "";
+    lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    lightboxClose.focus();
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    lightboxImg.src = "";
+    if (lightboxLastFocused && lightboxLastFocused.focus) lightboxLastFocused.focus();
+  }
+
+  thumbs.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var img = btn.querySelector("img");
+      openLightbox(btn.dataset.full, img ? img.alt : "");
+    });
+  });
+
+  lightboxClose.addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", function (e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && lightbox.classList.contains("is-open")) closeLightbox();
+  });
+})();
+</script>
+</body>
+</html>

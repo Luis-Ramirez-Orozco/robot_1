@@ -1,0 +1,362 @@
+/* Booking calendar popup. Shared across every page; calendar.js builds the
+   modal markup at runtime, so this file just needs to be linked alongside
+   it wherever a "Book Now" trigger exists. */
+
+.calendar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.calendar-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.calendar-modal {
+  width: 100%;
+  max-width: 480px;
+  background: #171717;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.5rem;
+  padding: 1.875rem;
+  color: #ececec;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.2s ease;
+}
+
+.calendar-overlay.is-open .calendar-modal {
+  transform: scale(1) translateY(0);
+}
+
+.calendar-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.calendar-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.625rem;
+  height: 2.625rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: none;
+  color: #ececec;
+  font-size: 2.0625rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.calendar-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.125rem;
+}
+
+.calendar-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.625rem;
+  height: 2.625rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: none;
+  color: #b5b5b5;
+  cursor: pointer;
+}
+
+.calendar-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ececec;
+}
+
+.calendar-month-label {
+  font-size: 1.3125rem;
+  font-weight: 600;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekdays {
+  margin-bottom: 0.375rem;
+}
+
+.calendar-weekdays span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.625rem;
+  font-size: 1.03rem;
+  font-weight: 600;
+  color: #8a8a8a;
+}
+
+.calendar-grid {
+  row-gap: 0.1875rem;
+}
+
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  height: 3.75rem;
+  border: none;
+  border-radius: 0.85rem;
+  background: none;
+  color: #ececec;
+  cursor: pointer;
+}
+
+.calendar-day-number {
+  font-size: 1.03rem;
+  line-height: 1;
+}
+
+.calendar-day-price {
+  font-size: 0.6875rem;
+  line-height: 1;
+  font-weight: 500;
+  color: #8a8a8a;
+}
+
+.calendar-day.is-selected .calendar-day-price {
+  color: rgba(16, 16, 16, 0.6);
+}
+
+.calendar-day:hover:not(:disabled):not(.is-selected) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.calendar-day.is-outside {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.calendar-day.is-today {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.calendar-day.is-today .calendar-day-number {
+  font-weight: 700;
+}
+
+.calendar-day.is-selected {
+  background: #ececec;
+  color: #101010;
+}
+
+.calendar-day.is-selected .calendar-day-number {
+  font-weight: 700;
+}
+
+.calendar-day:disabled {
+  color: rgba(255, 255, 255, 0.2);
+  cursor: not-allowed;
+}
+
+.calendar-day:disabled .calendar-day-price {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.calendar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.125rem;
+  margin-top: 1.5rem;
+  padding-top: 1.125rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 1.21875rem;
+  color: #b5b5b5;
+}
+
+.calendar-confirm-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.35rem;
+  background: #ececec;
+  color: #101010;
+  font-weight: 700;
+  font-size: 1.21875rem;
+  cursor: pointer;
+}
+
+.calendar-confirm-btn:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+.calendar-confirm-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.calendar-addons-btn {
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.35rem;
+  background: none;
+  color: #ececec;
+  font-weight: 600;
+  font-size: 1.21875rem;
+  cursor: pointer;
+}
+
+.calendar-addons-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Add-ons modal, stacked above the calendar modal ------------------ */
+
+#addons-overlay {
+  z-index: 110;
+}
+
+.addons-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 0.125rem;
+}
+
+.addon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.85rem;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.addon-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.addon-card:has(.addons-checkbox:checked) {
+  border-color: #ececec;
+}
+
+.addon-card-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.addon-card .addons-checkbox {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: #ececec;
+  cursor: pointer;
+}
+
+.addon-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem;
+}
+
+.addon-card-label {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.addon-card-price {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  color: #8a8a8a;
+}
+
+/* --- Phone-number modal, stacked above the calendar modal -------------- */
+
+#phone-overlay {
+  z-index: 110;
+}
+
+.phone-helper {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #8a8a8a;
+}
+
+.phone-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.75rem;
+  background: #101010;
+  color: #ececec;
+  font-size: 1.0625rem;
+  font-family: inherit;
+}
+
+.phone-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.phone-error {
+  font-size: 0.9375rem;
+  color: #f87171;
+}
+
+/* --- Thank-you modal, always on top ------------------------------------ */
+
+#thankyou-overlay {
+  z-index: 120;
+}
+
+.thankyou-message {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: #d4d4d4;
+}
+
+.thankyou-footer {
+  justify-content: flex-end;
+}

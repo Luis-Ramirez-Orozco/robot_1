@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Website Title</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="calendar.css" />
+<style>
+  html, body { margin: 0; background: #101010; }
+
+  #flashlight-wall { position: relative; width: 100%; height: 100svh; overflow: hidden; }
+
+  #flashlight-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  #flashlight-layout {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.75rem;
+    text-align: center;
+    padding: 6rem 1.5rem 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    #flashlight-layout {
+      flex-direction: row;
+      text-align: left;
+      gap: 3rem;
+      padding: 6rem 3rem 1.5rem;
+    }
+  }
+
+  /* The robot is masked by the flashlight exactly like the text (fully
+     hidden with no light on him). The strobe glow's brightness is driven
+     from JS in lockstep with that same mask, so a flash of the strobe
+     exposes him too, not just the flashlight/mouse. */
+  #robot-figure {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #robot-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 160%;
+    height: 130%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255,255,255,0.95) 0%,
+      rgba(255,255,255,0.55) 35%,
+      rgba(255,255,255,0) 70%);
+    filter: blur(50px);
+    opacity: 0.03;
+    pointer-events: none;
+  }
+
+  #robot-figure img {
+    position: relative;
+    max-width: min(620px, 82vw);
+    max-height: 78vh;
+    width: auto;
+    height: auto;
+    -webkit-mask-image: linear-gradient(rgba(0,0,0,0.03), rgba(0,0,0,0.03));
+    mask-image: linear-gradient(rgba(0,0,0,0.03), rgba(0,0,0,0.03));
+  }
+
+  /* The writing is masked by the flashlight. */
+  #flashlight-text {
+    margin: 0;
+    max-width: 36rem;
+    text-align: center;
+    font-family: "Arial Narrow", Impact, "Helvetica Neue", Arial, sans-serif;
+    color: #ececec;
+    -webkit-mask-image: linear-gradient(rgba(0,0,0,0.03), rgba(0,0,0,0.03));
+    mask-image: linear-gradient(rgba(0,0,0,0.03), rgba(0,0,0,0.03));
+  }
+
+  #flashlight-text .hero-heading {
+    margin: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    font-size: clamp(2.5rem, 9vw, 7rem);
+  }
+
+  #flashlight-nav {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+    padding: 1.5rem 1.75rem;
+  }
+
+  #flashlight-nav .site-title {
+    color: #ececec;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
+  #flashlight-nav .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  #flashlight-nav a {
+    color: #ececec;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    white-space: nowrap;
+  }
+
+  /* --- Event categories carousel ---------------------------------------- */
+
+  #event-categories {
+    background: #0b0b0b;
+    padding: 4.5rem 1.5rem 5rem;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  .categories-intro {
+    max-width: 1100px;
+    margin: 0 auto 2.5rem;
+    text-align: center;
+  }
+
+  .categories-eyebrow {
+    margin: 0 0 0.5rem;
+    color: #8a8a8a;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .categories-intro h2 {
+    margin: 0;
+    color: #ececec;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  .categories-carousel {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .categories-nav-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: none;
+    color: #ececec;
+    cursor: pointer;
+  }
+
+  .categories-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .categories-track {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .category-card {
+    background: #171717;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .category-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+    color: #ececec;
+  }
+
+  .category-title {
+    margin: 0 0 0.6rem;
+    color: #ececec;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .category-desc {
+    margin: 0;
+    color: #a3a3a3;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .categories-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+
+  .categories-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .categories-dot.is-active {
+    background: #ececec;
+  }
+
+  @media (max-width: 900px) {
+    .categories-track {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .categories-track {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<section id="flashlight-wall" class="bg-[#101010]">
+  <canvas id="flashlight-canvas" aria-hidden="true"></canvas>
+
+  <nav id="flashlight-nav">
+    <a class="site-title" href="index.html">[Site Title]</a>
+    <div class="nav-links">
+      <a href="gallery.html">Gallery</a>
+      <a href="about.html">About Us</a>
+      <a href="#" id="book-now-link">Book Now</a>
+    </div>
+  </nav>
+
+  <div id="flashlight-layout">
+    <div id="robot-figure">
+      <div id="robot-glow" aria-hidden="true"></div>
+      <img id="robot-image" src="images/robot-cutout.png" alt="Robot in LED costume" />
+    </div>
+    <div id="flashlight-text">
+      <p class="hero-heading">Book Your<br>Event Today</p>
+    </div>
+  </div>
+</section>
+
+<section id="event-categories">
+  <div class="categories-intro">
+    <p class="categories-eyebrow">What We Do</p>
+    <h2>Event Categories</h2>
+  </div>
+
+  <div class="categories-carousel">
+    <button type="button" class="categories-nav-btn categories-prev" id="categories-prev" aria-label="Previous categories">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="categories-track" id="categories-track"></div>
+    <button type="button" class="categories-nav-btn categories-next" id="categories-next" aria-label="Next categories">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+
+  <div class="categories-dots" id="categories-dots"></div>
+</section>
+
+<script>
+(function () {
+  // Ported from the "Flashlight Text Reveal" React component: a drifting
+  // WebGL1 wall shader ("Mesh drift" recipe), with a flashlight cursor effect
+  // (mode 4) whose falloff also drives a CSS mask over the DOM content layer.
+
+  var SPOTLIGHT = 4;
+
+  var VERT = [
+    "attribute vec2 a_position;",
+    "void main() {",
+    "  gl_Position = vec4(a_position, 0.0, 1.0);",
+    "}"
+  ].join("\n");
+
+  var FRAG = [
+    "#ifdef GL_FRAGMENT_PRECISION_HIGH",
+    "precision highp float;",
+    "#else",
+    "precision mediump float;",
+    "#endif",
+    "",
+    "uniform vec3 u_colors[8];",
+    "uniform vec4 u_scene;",
+    "uniform vec4 u_shape;",
+    "uniform vec4 u_surface;",
+    "uniform vec4 u_finish;",
+    "uniform vec4 u_transform;",
+    "uniform vec4 u_space;",
+    "uniform vec4 u_cursor;",
+    "",
+    "#define u_resolution u_scene.xy",
+    "#define u_time u_scene.z",
+    "#define u_colorCount u_scene.w",
+    "#define u_scale u_shape.x",
+    "#define u_intensity u_shape.y",
+    "#define u_paramA u_shape.z",
+    "#define u_warp u_shape.w",
+    "#define u_detail u_surface.x",
+    "#define u_contrast u_surface.y",
+    "#define u_brightness u_surface.z",
+    "#define u_saturation u_surface.w",
+    "#define u_hue u_finish.x",
+    "#define u_vignette u_finish.y",
+    "#define u_blur u_finish.z",
+    "#define u_grain u_finish.w",
+    "#ifdef GL_FRAGMENT_PRECISION_HIGH",
+    "#define u_seed u_transform.x",
+    "#else",
+    "#define u_seed mod(u_transform.x, 31.0)",
+    "#endif",
+    "#define u_rotate u_transform.y",
+    "#define u_drift u_transform.z",
+    "#define u_oklab u_transform.w",
+    "#define u_offset u_space.xy",
+    "#define u_mouse u_space.zw",
+    "#define u_cursorPresence u_cursor.x",
+    "#define u_cursorEffect u_cursor.y",
+    "#define u_cursorStrength u_cursor.z",
+    "#define u_cursorRadius u_cursor.w",
+    "",
+    "float hash21(vec2 p) {",
+    "#ifndef GL_FRAGMENT_PRECISION_HIGH",
+    "  p = mod(p, 31.0);",
+    "#endif",
+    "  p = fract(p * vec2(234.34, 435.345));",
+    "  p += dot(p, p + 34.23);",
+    "  return fract(p.x * p.y);",
+    "}",
+    "",
+    "float grainHash(vec2 p) {",
+    "  vec3 p3 = fract(vec3(p.xyx) * 0.1031);",
+    "  p3 += dot(p3, p3.yzx + 33.33);",
+    "  return fract((p3.x + p3.y) * p3.z);",
+    "}",
+    "",
+    "vec2 hash22(vec2 p) {",
+    "#ifndef GL_FRAGMENT_PRECISION_HIGH",
+    "  p = mod(p, 31.0);",
+    "#endif",
+    "  float n = sin(dot(p, vec2(41.0, 289.0)));",
+    "  return fract(vec2(15731.743, 7892.321) * n);",
+    "}",
+    "",
+    "float noise(vec2 p) {",
+    "  vec2 i = floor(p);",
+    "  vec2 f = fract(p);",
+    "  vec2 u = f * f * (3.0 - 2.0 * f);",
+    "  return mix(",
+    "    mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),",
+    "    mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),",
+    "    u.y);",
+    "}",
+    "",
+    "float fbm(vec2 p) {",
+    "  float v = 0.0;",
+    "  float a = 0.5;",
+    "  for (int i = 0; i < 5; i++) {",
+    "    v += a * noise(p);",
+    "    p = p * 2.03 + vec2(17.0, 9.2);",
+    "    a *= 0.5;",
+    "  }",
+    "  return v;",
+    "}",
+    "",
+    "vec3 srgbToLinear(vec3 c) {",
+    "  return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)),",
+    "    step(0.04045, c));",
+    "}",
+    "vec3 linearToSrgb(vec3 c) {",
+    "  return mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055,",
+    "    step(0.0031308, c));",
+    "}",
+    "vec3 linToOklab(vec3 c) {",
+    "  float l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;",
+    "  float m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;",
+    "  float s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;",
+    "  l = pow(max(l, 0.0), 1.0 / 3.0);",
+    "  m = pow(max(m, 0.0), 1.0 / 3.0);",
+    "  s = pow(max(s, 0.0), 1.0 / 3.0);",
+    "  return vec3(",
+    "    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,",
+    "    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,",
+    "    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s);",
+    "}",
+    "vec3 oklabToLin(vec3 c) {",
+    "  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;",
+    "  float m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;",
+    "  float s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;",
+    "  l = l * l * l; m = m * m * m; s = s * s * s;",
+    "  return vec3(",
+    "    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,",
+    "    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,",
+    "    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);",
+    "}",
+    "vec3 mixColour(vec3 a, vec3 b, float t) {",
+    "  if (u_oklab > 0.5) {",
+    "    vec3 la = linToOklab(srgbToLinear(a));",
+    "    vec3 lb = linToOklab(srgbToLinear(b));",
+    "    return clamp(linearToSrgb(oklabToLin(mix(la, lb, t))), 0.0, 1.0);",
+    "  }",
+    "  return mix(a, b, t);",
+    "}",
+    "",
+    "vec3 palette(float x) {",
+    "  float n = max(u_colorCount - 1.0, 1.0);",
+    "  float f = clamp(x, 0.0, 1.0) * n;",
+    "  vec3 col = u_colors[0];",
+    "  for (int i = 0; i < 7; i++) {",
+    "    if (float(i) < n)",
+    "      col = mixColour(col, u_colors[i + 1],",
+    "        smoothstep(0.0, 1.0, clamp(f - float(i), 0.0, 1.0)));",
+    "  }",
+    "  return col;",
+    "}",
+    "",
+    "vec3 hueRotate(vec3 col, float a) {",
+    "  const mat3 toYIQ = mat3(0.299, 0.596, 0.211,",
+    "                          0.587, -0.274, -0.523,",
+    "                          0.114, -0.322, 0.312);",
+    "  const mat3 toRGB = mat3(1.0, 1.0, 1.0,",
+    "                          0.956, -0.272, -1.106,",
+    "                          0.621, -0.647, 1.703);",
+    "  vec3 yiq = toYIQ * col;",
+    "  float ca = cos(a), sa = sin(a);",
+    "  yiq = vec3(yiq.x, yiq.y * ca - yiq.z * sa, yiq.y * sa + yiq.z * ca);",
+    "  return toRGB * yiq;",
+    "}",
+    "",
+    "vec3 shade(vec2 uv, vec2 p, float t) {",
+    "  vec3 acc = u_colors[0] * 0.15;",
+    "  float total = 0.15;",
+    "  for (int i = 0; i < 8; i++) {",
+    "    if (float(i) >= u_colorCount) break;",
+    "    float fi = float(i);",
+    "    vec2 c = vec2(",
+    "      sin(t * (0.21 + fi * 0.071) + fi * 2.4 + u_seed),",
+    "      cos(t * (0.17 + fi * 0.093) + fi * 1.7)) * (0.45 + u_intensity * 0.35);",
+    "    float w = exp(-dot(p - c, p - c) * 6.0);",
+    "    acc += u_colors[i] * w;",
+    "    total += w;",
+    "  }",
+    "  return acc / total;",
+    "}",
+    "",
+    "void main() {",
+    "  vec2 uv = gl_FragCoord.xy / u_resolution.xy;",
+    "  vec2 screenUv = uv;",
+    "  vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy)",
+    "    / min(u_resolution.x, u_resolution.y);",
+    "  float cursorMask = 0.0;",
+    "",
+    "  if (u_cursorPresence > 0.001) {",
+    "    vec2 cursor = (0.5 * u_mouse * u_resolution.xy)",
+    "      / min(u_resolution.x, u_resolution.y);",
+    "    vec2 cursorDelta = p - cursor;",
+    "    if (u_cursorEffect < 0.5) {",
+    "      p += cursor * u_cursorPresence * u_cursorStrength * 0.55;",
+    "    } else {",
+    "      float cursorDistance = length(cursorDelta);",
+    "      vec2 cursorDirection = cursorDelta / max(cursorDistance, 0.0001);",
+    "      cursorMask = u_cursorPresence",
+    "        * (1.0 - smoothstep(0.0, u_cursorRadius, cursorDistance));",
+    "      if (u_cursorEffect < 1.5) {",
+    "        p -= cursorDirection * cursorMask * u_cursorStrength * 0.24;",
+    "      } else if (u_cursorEffect < 2.5) {",
+    "        float cursorAngle = cursorMask * u_cursorStrength * 2.2;",
+    "        float cc = cos(cursorAngle), cs = sin(cursorAngle);",
+    "        p = cursor + mat2(cc, -cs, cs, cc) * cursorDelta;",
+    "      } else if (u_cursorEffect < 3.5) {",
+    "        float ripple = sin(",
+    "          cursorDistance / max(u_cursorRadius, 0.001) * 18.0 - u_time * 5.0);",
+    "        p -= cursorDirection * ripple * cursorMask * u_cursorStrength * 0.07;",
+    "      }",
+    "    }",
+    "  }",
+    "",
+    "  uv = p * min(u_resolution.x, u_resolution.y) / u_resolution.xy + 0.5;",
+    "  p *= u_scale;",
+    "  if (abs(u_rotate) > 0.0001) {",
+    "    float cr = cos(u_rotate), sr = sin(u_rotate);",
+    "    p = mat2(cr, -sr, sr, cr) * p;",
+    "  }",
+    "  p += u_offset;",
+    "  if (u_drift > 0.0001)",
+    "    p += u_drift * vec2(sin(u_time * 0.31), cos(u_time * 0.23));",
+    "  if (u_warp > 0.0) {",
+    "    p += u_warp * (vec2(",
+    "      fbm(p * u_detail + u_seed),",
+    "      fbm(p * u_detail + vec2(5.2, 1.3))) - 0.5);",
+    "  }",
+    "  vec3 col;",
+    "  if (u_blur > 0.0) {",
+    "    float e = u_blur;",
+    "    float pe = e * u_scale;",
+    "    vec2 uvE = vec2(e) * min(u_resolution.x, u_resolution.y) / u_resolution.xy;",
+    "    col  = shade(uv, p, u_time) * 0.36;",
+    "    col += shade(uv + vec2(uvE.x, 0.0), p + vec2(pe, 0.0), u_time) * 0.16;",
+    "    col += shade(uv - vec2(uvE.x, 0.0), p - vec2(pe, 0.0), u_time) * 0.16;",
+    "    col += shade(uv + vec2(0.0, uvE.y), p + vec2(0.0, pe), u_time) * 0.16;",
+    "    col += shade(uv - vec2(0.0, uvE.y), p - vec2(0.0, pe), u_time) * 0.16;",
+    "  } else {",
+    "    col = shade(uv, p, u_time);",
+    "  }",
+    "  if (abs(u_contrast - 1.0) > 0.0001)",
+    "    col = (col - 0.5) * u_contrast + 0.5;",
+    "  if (abs(u_saturation - 1.0) > 0.0001) {",
+    "    float luma = dot(col, vec3(0.299, 0.587, 0.114));",
+    "    col = mix(vec3(luma), col, u_saturation);",
+    "  }",
+    "  if (abs(u_hue) > 0.0001)",
+    "    col = hueRotate(col, u_hue);",
+    "  if (abs(u_brightness) > 0.0001)",
+    "    col += u_brightness;",
+    "  if (u_vignette > 0.0001) {",
+    "    float vd = length(screenUv - 0.5) * 1.41421356;",
+    "    col *= 1.0 - u_vignette * smoothstep(0.35, 1.0, vd);",
+    "  }",
+    "  if (u_cursorPresence > 0.001 && u_cursorEffect > 3.5)",
+    "    col += (vec3(0.18) + col * 0.12) * cursorMask * u_cursorStrength;",
+    "  if (u_grain > 0.0001)",
+    "    col += (grainHash(",
+    "      gl_FragCoord.xy + vec2(u_seed * 17.0, u_seed * 31.0)) - 0.5) * u_grain;",
+    "  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);",
+    "}"
+  ].join("\n");
+
+  function hexToRgb(hex) {
+    var h = hex.trim().replace(/^#/, "");
+    if (h.length === 3) h = h.replace(/./g, "$&$&");
+    var n = /^[0-9a-f]{6}$/i.test(h) ? parseInt(h, 16) : 0;
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+  }
+
+  var FALLOFF = [1, 0.84375, 0.5, 0.15625, 0];
+
+  function lightMask(x, y, radius, presence, ghost) {
+    var stops = FALLOFF.map(function (f, i) {
+      var a = ghost + (1 - ghost) * f * presence;
+      return "rgba(0,0,0," + a.toFixed(3) + ") " + i * 25 + "%";
+    });
+    return (
+      "radial-gradient(circle " + Math.max(radius, 1).toFixed(1) + "px at " +
+      x.toFixed(1) + "px " + y.toFixed(1) + "px, " + stops.join(", ") + ")"
+    );
+  }
+
+  function wanderAt(t) {
+    return [0.62 * Math.sin(t * 0.37), 0.5 * Math.sin(t * 0.53 + 1.3)];
+  }
+
+  // Strobe cycle, as fraction-of-cycle -> ghost (reveal) amount. Mostly dark,
+  // with two quick bright flashes per 2.6s loop.
+  var STROBE_CYCLE = 2.6;
+  var STROBE_STOPS = [
+    [0.00, 0.03], [0.04, 0.95], [0.08, 0.05], [0.12, 0.75], [0.16, 0.03],
+    [0.55, 0.05], [0.70, 0.95], [0.75, 0.05], [1.00, 0.03]
+  ];
+  function strobePulse(t) {
+    var phase = (t % STROBE_CYCLE) / STROBE_CYCLE;
+    for (var i = 0; i < STROBE_STOPS.length - 1; i++) {
+      var a = STROBE_STOPS[i], b = STROBE_STOPS[i + 1];
+      if (phase >= a[0] && phase <= b[0]) {
+        var localT = (phase - a[0]) / (b[0] - a[0]);
+        return a[1] + (b[1] - a[1]) * localT;
+      }
+    }
+    return STROBE_STOPS[STROBE_STOPS.length - 1][1];
+  }
+
+  function compile(gl, vert, frag) {
+    var program = gl.createProgram();
+    if (!program) return null;
+    var pairs = [[gl.VERTEX_SHADER, vert], [gl.FRAGMENT_SHADER, frag]];
+    for (var i = 0; i < pairs.length; i++) {
+      var type = pairs[i][0], source = pairs[i][1];
+      var shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.warn(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        gl.deleteProgram(program);
+        return null;
+      }
+      gl.attachShader(program, shader);
+      gl.deleteShader(shader);
+    }
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.warn(gl.getProgramInfoLog(program));
+      gl.deleteProgram(program);
+      return null;
+    }
+    return program;
+  }
+
+  // --- Settings (static equivalents of the React component's defaults) ---
+  var settings = {
+    palette: ["#101010", "#3A3A3A"],
+    ghost: 0.03,
+    wander: true,
+    radius: 0.35,
+    strength: 0.45,
+    speed: 0.86,
+    scale: 2.5,
+    intensity: 0.59,
+    warp: 0,
+    detail: 2.4,
+    contrast: 0.91,
+    brightness: -0.1,
+    saturation: 1,
+    hue: 6.28,
+    vignette: 0,
+    blur: 0.016,
+    grain: 0.16,
+    drift: 0.03,
+    seed: 1,
+    rotation: 0,
+    oklab: false,
+    paused: false
+  };
+
+  var canvas = document.getElementById("flashlight-canvas");
+  var content = document.getElementById("flashlight-text");
+  var robotImage = document.getElementById("robot-image");
+  var robotGlow = document.getElementById("robot-glow");
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function (e) {
+    reduced = e.matches;
+    kick();
+  });
+
+  var gl = canvas.getContext("webgl", { antialias: false, alpha: false });
+  var failed = !gl;
+  var program = failed ? null : compile(gl, VERT, FRAG);
+  if (!program) failed = true;
+
+  if (failed) {
+    // No WebGL: flat radial-gradient wall with a fixed centre light, same as
+    // the component's fallback.
+    canvas.style.display = "none";
+    var wall = document.getElementById("flashlight-wall");
+    wall.style.background =
+      "radial-gradient(circle at 50% 50%, " + settings.palette[settings.palette.length - 1] +
+      " 0%, " + settings.palette[0] + " 45%)";
+    content.style.maskImage = "radial-gradient(circle at 50% 50%, #000 0%, rgba(0,0,0,0.03) 45%)";
+    content.style.webkitMaskImage = content.style.maskImage;
+    robotImage.style.maskImage = "radial-gradient(circle at 50% 50%, #000 0%, rgba(0,0,0,0.03) 45%)";
+    robotImage.style.webkitMaskImage = robotImage.style.maskImage;
+    robotGlow.style.opacity = "0.5";
+    return;
+  }
+
+  var triangleBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var positionLoc = gl.getAttribLocation(program, "a_position");
+  gl.enableVertexAttribArray(positionLoc);
+  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+  gl.useProgram(program);
+
+  function u(name) { return gl.getUniformLocation(program, name); }
+  var loc = {
+    colors: u("u_colors"),
+    scene: u("u_scene"),
+    shape: u("u_shape"),
+    surface: u("u_surface"),
+    finish: u("u_finish"),
+    transform: u("u_transform"),
+    space: u("u_space"),
+    cursor: u("u_cursor")
+  };
+  var colorData = new Float32Array(24);
+
+  var pointer = { x: 0, y: 0, inside: false };
+  var light = { x: 0, y: 0 };
+  var presence = 0;
+  var time = 0;
+  var roam = 0;
+  var strobeClock = 0;
+  var last = 0;
+  var raf = 0;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    var h = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+  }
+
+  function draw(now) {
+    raf = 0;
+    var dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
+    last = now;
+    resize();
+
+    var s = settings;
+    var moving = !reduced && !s.paused;
+    if (moving) {
+      time += dt * s.speed;
+      roam += dt;
+      strobeClock += dt;
+    }
+
+    var target = pointer.inside ? [pointer.x, pointer.y] : (s.wander && moving ? wanderAt(roam) : [0, 0]);
+    var tx = target[0], ty = target[1];
+    var on = (pointer.inside || s.wander) ? 1 : 0;
+    var k = reduced ? 1 : 1 - Math.exp(-dt / (pointer.inside ? 0.08 : 0.6));
+    light.x += (tx - light.x) * k;
+    light.y += (ty - light.y) * k;
+    presence += (on - presence) * (reduced ? 1 : 1 - Math.exp(-dt / 0.25));
+
+    colorData.fill(0);
+    s.palette.forEach(function (hex, i) {
+      var rgb = hexToRgb(hex);
+      colorData.set(rgb, i * 3);
+    });
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform3fv(loc.colors, colorData);
+    gl.uniform4f(loc.scene, canvas.width, canvas.height, time, s.palette.length);
+    gl.uniform4f(loc.shape, s.scale, s.intensity, 0.5, s.warp);
+    gl.uniform4f(loc.surface, s.detail, s.contrast, s.brightness, s.saturation);
+    gl.uniform4f(loc.finish, s.hue, s.vignette, s.blur, s.grain);
+    gl.uniform4f(loc.transform, s.seed, s.rotation, s.drift, s.oklab ? 1 : 0);
+    gl.uniform4f(loc.space, 0, 0, light.x, light.y);
+    gl.uniform4f(loc.cursor, presence, SPOTLIGHT, s.strength, s.radius);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    var w = canvas.clientWidth;
+    var h = canvas.clientHeight;
+    var cx = ((light.x + 1) / 2) * w;
+    var cy = ((1 - light.y) / 2) * h;
+    var radiusPx = s.radius * Math.min(w, h);
+
+    // mask-image's radial-gradient position is relative to each masked
+    // element's own box, not the canvas/page, so the shared light position
+    // (in canvas-space) has to be re-expressed relative to each element.
+    var canvasRect = canvas.getBoundingClientRect();
+    var textRect = content.getBoundingClientRect();
+    var mask = lightMask(
+      cx - (textRect.left - canvasRect.left),
+      cy - (textRect.top - canvasRect.top),
+      radiusPx, presence, s.ghost
+    );
+    content.style.maskImage = mask;
+    content.style.webkitMaskImage = mask;
+
+    var strobe = reduced ? 0.45 : strobePulse(strobeClock);
+    var robotRect = robotImage.getBoundingClientRect();
+    var robotMask = lightMask(
+      cx - (robotRect.left - canvasRect.left),
+      cy - (robotRect.top - canvasRect.top),
+      radiusPx, presence, strobe
+    );
+    robotImage.style.maskImage = robotMask;
+    robotImage.style.webkitMaskImage = robotMask;
+    robotGlow.style.opacity = String(strobe);
+
+    var easing =
+      Math.abs(on - presence) > 0.001 ||
+      Math.abs(tx - light.x) > 0.0005 ||
+      Math.abs(ty - light.y) > 0.0005;
+    if ((moving || easing) && !document.hidden) raf = requestAnimationFrame(draw);
+  }
+
+  function kick() {
+    if (!raf && !document.hidden) raf = requestAnimationFrame(draw);
+  }
+  kick();
+
+  var observer = new ResizeObserver(kick);
+  observer.observe(canvas);
+
+  window.addEventListener("pointermove", function (e) {
+    var r = canvas.getBoundingClientRect();
+    pointer.inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    pointer.y = 1 - ((e.clientY - r.top) / r.height) * 2;
+    kick();
+  }, { passive: true });
+
+  document.documentElement.addEventListener("pointerleave", function () {
+    pointer.inside = false;
+    kick();
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    } else {
+      last = 0;
+      kick();
+    }
+  });
+
+  canvas.addEventListener("webglcontextlost", function (e) {
+    e.preventDefault();
+    cancelAnimationFrame(raf);
+    raf = 0;
+  });
+  canvas.addEventListener("webglcontextrestored", function () {
+    last = 0;
+    kick();
+  });
+})();
+</script>
+<script src="calendar.js"></script>
+<script>
+(function () {
+  var ICON_RINGS = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg>';
+  var ICON_MIC = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/><path d="M9 21h6"/></svg>';
+  var ICON_SCISSORS = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88"/><path d="M14.47 14.48 20 20"/><path d="M8.12 8.12 12 12"/></svg>';
+  var ICON_SPEAKER = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><circle cx="12" cy="17" r="2.5"/><circle cx="12" cy="7" r="1.25"/></svg>';
+  var ICON_BRIEFCASE = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>';
+  var ICON_CAKE = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M5 10h14a2 2 0 0 1 2 2v8H3v-8a2 2 0 0 1 2-2Z"/><path d="M3 16h18"/></svg>';
+  var ICON_HEART = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
+  var ICON_PEOPLE = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5"/><path d="M15.5 14.5c2 .3 3.5 1.9 3.5 4.5v1"/></svg>';
+
+  var CATEGORIES = [
+    { title: "Birthday Parties", desc: "Interactive, larger-than-life entertainment that makes any birthday impossible to forget.", icon: ICON_CAKE },
+    { title: "Weddings", desc: "A towering, glowing centerpiece that turns any reception into a night guests won't forget.", icon: ICON_RINGS },
+    { title: "Festivals", desc: "Larger-than-life entertainment built to stand out in a crowd and keep the energy going all day.", icon: ICON_MIC },
+    { title: "Grand Openings", desc: "A striking, futuristic welcome that stops foot traffic and gets people talking about your brand.", icon: ICON_SCISSORS },
+    { title: "Concerts", desc: "High-energy stage presence that syncs with the music and amplifies the whole show.", icon: ICON_SPEAKER },
+    { title: "Trade Shows", desc: "A crowd-magnet booth attraction that puts your brand at the center of attention.", icon: ICON_BRIEFCASE },
+    { title: "Anniversaries", desc: "A luminous, elegant touch that celebrates milestones in style.", icon: ICON_HEART },
+    { title: "Corporate Events", desc: "A polished, professional performance that breaks the ice and gets everyone engaged.", icon: ICON_PEOPLE }
+  ];
+
+  var track = document.getElementById("categories-track");
+  var dotsEl = document.getElementById("categories-dots");
+  var prevBtn = document.getElementById("categories-prev");
+  var nextBtn = document.getElementById("categories-next");
+  var page = 0;
+
+  function visibleCount() {
+    var w = window.innerWidth;
+    if (w <= 600) return 1;
+    if (w <= 900) return 2;
+    return 3;
+  }
+
+  function pageCount() {
+    return Math.ceil(CATEGORIES.length / visibleCount());
+  }
+
+  function render() {
+    var pc = pageCount();
+    if (page > pc - 1) page = pc - 1;
+    var vc = visibleCount();
+    var start = page * vc;
+
+    track.innerHTML = CATEGORIES.slice(start, start + vc).map(function (c) {
+      return '<div class="category-card">' +
+        '<div class="category-icon">' + c.icon + "</div>" +
+        '<h3 class="category-title">' + c.title + "</h3>" +
+        '<p class="category-desc">' + c.desc + "</p>" +
+        "</div>";
+    }).join("");
+
+    dotsEl.innerHTML = "";
+    for (var i = 0; i < pc; i++) {
+      var dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "categories-dot" + (i === page ? " is-active" : "");
+      dot.setAttribute("aria-label", "Go to page " + (i + 1));
+      dot.addEventListener("click", (function (idx) {
+        return function () { page = idx; render(); };
+      })(i));
+      dotsEl.appendChild(dot);
+    }
+  }
+
+  prevBtn.addEventListener("click", function () {
+    var pc = pageCount();
+    page = (page - 1 + pc) % pc;
+    render();
+  });
+  nextBtn.addEventListener("click", function () {
+    var pc = pageCount();
+    page = (page + 1) % pc;
+    render();
+  });
+
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 150);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

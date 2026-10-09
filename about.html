@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About Us — Your Website Title</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="calendar.css" />
+<style>
+  html, body { margin: 0; min-height: 100%; background: #101010; color: #ececec; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+  .page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .page-nav .site-title {
+    color: #ececec;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
+  .page-nav .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .page-nav .nav-links a {
+    color: #ececec;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    white-space: nowrap;
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.75rem 1.75rem 2rem;
+  }
+
+  main h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .about-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 2.5rem;
+    text-align: left;
+  }
+
+  .about-text-stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .about-text p {
+    margin: 0;
+    color: #b5b5b5;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .about-video {
+    flex: 0 0 340px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .about-video video {
+    display: block;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .about-layout {
+      flex-direction: column;
+    }
+    .about-video {
+      flex-basis: auto;
+      width: 100%;
+      max-width: 420px;
+    }
+  }
+
+  .our-promise {
+    text-align: left;
+  }
+
+  .our-promise .section-eyebrow {
+    margin: 0 0 0.5rem;
+    color: #8a8a8a;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .our-promise h2 {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+
+  .our-promise p {
+    margin: 0;
+    color: #b5b5b5;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<nav class="page-nav">
+  <a class="site-title" href="index.html">[Site Title]</a>
+  <div class="nav-links">
+    <a href="gallery.html">Gallery</a>
+    <a href="about.html">About Us</a>
+    <a href="#" id="book-now-link">Book Now</a>
+  </div>
+</nav>
+
+<main>
+  <div class="about-layout">
+    <div class="about-text-stack">
+      <div class="about-text">
+        <h1>About Us</h1>
+        <p>We're based in the Los Angeles area and are dedicated to providing exceptional service and quality to every client we work with. We've had the pleasure of working in this industry for over a decade, specializing in creating unforgettable experiences for our clients. Whether you're planning a birthday party, a graduation, or a special occasion, we're here to make it memorable.</p>
+      </div>
+
+      <section class="our-promise">
+        <h2>Our Promise</h2>
+        <p>From the first message to the final bow, we treat every event like it's the only one that matters. We show up early, fully prepared, and focused on one thing: making sure your guests are still talking about it long after the night is over. If something's ever not right, we make it right — your satisfaction isn't just the goal, it's the standard we hold ourselves to every time.</p>
+      </section>
+    </div>
+
+    <!-- Placeholder video until the real About Us clip is ready. -->
+    <div class="about-video">
+      <video controls loop autoplay muted preload="auto" playsinline>
+        <source src="images/Gallery/part-1-portrait.mp4" />
+        Your browser doesn't support this video. <a href="images/Gallery/part-1-portrait.mp4">Download it</a> instead.
+      </video>
+    </div>
+  </div>
+</main>
+
+<script src="calendar.js"></script>
+</body>
+</html>
