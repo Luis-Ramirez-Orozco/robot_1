@@ -690,9 +690,41 @@
   });
 
   var gl = canvas.getContext("webgl", { antialias: false, alpha: false });
-  var failed = !gl;
-  var program = failed ? null : compile(gl, VERT, FRAG);
-  if (!program) failed = true;
+
+  // Everything here is tied to the GL context and gets invalidated if the
+  // context is lost (e.g. the tab gets backgrounded - which a mailto: link
+  // can trigger by switching focus to the mail app - and the browser
+  // reclaims the GPU context to save memory). This has to re-run in full on
+  // "webglcontextrestored", not just resume the draw loop with stale
+  // objects, or the canvas comes back permanently blank.
+  var program, triangleBuffer, positionLoc, loc;
+  function setupGL() {
+    program = compile(gl, VERT, FRAG);
+    if (!program) return false;
+
+    triangleBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    positionLoc = gl.getAttribLocation(program, "a_position");
+    gl.enableVertexAttribArray(positionLoc);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.useProgram(program);
+
+    function u(name) { return gl.getUniformLocation(program, name); }
+    loc = {
+      colors: u("u_colors"),
+      scene: u("u_scene"),
+      shape: u("u_shape"),
+      surface: u("u_surface"),
+      finish: u("u_finish"),
+      transform: u("u_transform"),
+      space: u("u_space"),
+      cursor: u("u_cursor")
+    };
+    return true;
+  }
+
+  var failed = !gl || !setupGL();
 
   if (failed) {
     // No WebGL: flat radial-gradient wall with a fixed centre light, same as
@@ -710,25 +742,6 @@
     return;
   }
 
-  var triangleBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  var positionLoc = gl.getAttribLocation(program, "a_position");
-  gl.enableVertexAttribArray(positionLoc);
-  gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-  gl.useProgram(program);
-
-  function u(name) { return gl.getUniformLocation(program, name); }
-  var loc = {
-    colors: u("u_colors"),
-    scene: u("u_scene"),
-    shape: u("u_shape"),
-    surface: u("u_surface"),
-    finish: u("u_finish"),
-    transform: u("u_transform"),
-    space: u("u_space"),
-    cursor: u("u_cursor")
-  };
   var colorData = new Float32Array(24);
 
   var pointer = { x: 0, y: 0, inside: false };
@@ -863,6 +876,7 @@
     raf = 0;
   });
   canvas.addEventListener("webglcontextrestored", function () {
+    if (!setupGL()) return;
     last = 0;
     kick();
   });
