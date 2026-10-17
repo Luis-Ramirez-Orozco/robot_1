@@ -108,7 +108,7 @@
       '  <section class="details-section">' +
       "    <h3>Travel</h3>" +
       "    <ul>" +
-      "      <li>Free within 30 miles of Irwindale hub</li>" +
+      "      <li>Free within 30 miles of Irwindale</li>" +
       "      <li>" + MILE_SURCHARGE + " after that</li>" +
       "    </ul>" +
       "  </section>" +
@@ -139,7 +139,7 @@
         '    <span class="addon-card-price">$' + addon.price + " each" + "</span>" +
         "  </span>" +
         '  <span class="addon-qty" data-id="' + addon.id + '">' +
-        '    <span class="addon-qty-label">Quantity</span>' +
+        '    <span class="addon-qty-label"><span class="qty-long">Quantity</span><span class="qty-short">QTY</span></span>' +
         '    <button type="button" class="addon-qty-btn" data-step="-1" aria-label="Fewer">&minus;</button>' +
         '    <span class="addon-qty-value" aria-live="polite">0</span>' +
         '    <button type="button" class="addon-qty-btn" data-step="1" aria-label="More">+</button>' +

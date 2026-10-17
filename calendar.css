@@ -509,6 +509,9 @@
 }
 
 @media (max-width: 480px) {
+  .calendar-overlay {
+    padding: 0.75rem;
+  }
   .calendar-modal {
     padding: 1.5rem 1.25rem;
   }
@@ -520,5 +523,45 @@
   .calendar-confirm-btn,
   .calendar-addons-btn {
     padding: 0.6rem 1rem;
+  }
+}
+
+.qty-short {
+  display: none;
+}
+
+/* Phones: "QTY" label on its own line, with bigger tap targets below. */
+@media (max-width: 767px) {
+  .qty-long {
+    display: none;
+  }
+  .qty-short {
+    display: inline;
+  }
+  .addon-card-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+    padding: 0.6rem 0.5rem 0.5rem;
+  }
+  .addon-qty {
+    flex-wrap: wrap;
+    gap: 0.375rem 0.25rem;
+    padding: 0 0.5rem 0.6rem;
+  }
+  .addon-qty-label {
+    flex: 0 0 100%;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .addon-qty-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.65rem;
+    font-size: 1.375rem;
+  }
+  .addon-qty-value {
+    flex: 1;
+    font-size: 1.125rem;
   }
 }

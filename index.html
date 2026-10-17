@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="format-detection" content="telephone=no" />
 <title>Robot Shows</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="calendar.css" />
+<link rel="stylesheet" href="calendar.css?v=2" />
 <style>
   html, body { margin: 0; background: #101010; }
 
@@ -145,6 +146,27 @@
   #flashlight-nav #book-now-link:hover {
     transform: translateY(-1px);
     box-shadow: 0 0 26px rgba(255, 255, 255, 0.55);
+  }
+
+  /* Phones: centered title with the links centered beneath it, and the
+     robot sized so he and the heading both fit below the nav. */
+  @media (max-width: 767px) {
+    #flashlight-nav {
+      flex-direction: column;
+      justify-content: center;
+      padding: 1.25rem 1rem;
+    }
+    #flashlight-nav .nav-links {
+      justify-content: center;
+    }
+    #flashlight-layout {
+      justify-content: flex-start;
+      gap: 1rem;
+      padding: 8.5rem 1rem 1.25rem;
+    }
+    #robot-figure img {
+      max-height: calc(100svh - 17rem);
+    }
   }
 
   /* --- Event categories carousel ---------------------------------------- */
@@ -910,7 +932,7 @@
   });
 })();
 </script>
-<script src="calendar.js"></script>
+<script src="calendar.js?v=2"></script>
 <script>
 (function () {
   var ICON_RINGS = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg>';

@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="format-detection" content="telephone=no" />
 <title>Gallery — Robot Shows</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="calendar.css" />
+<link rel="stylesheet" href="calendar.css?v=2" />
 <style>
   html, body { margin: 0; min-height: 100%; background: #101010; color: #ececec; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
 
@@ -51,6 +52,18 @@
   .page-nav #book-now-link:hover {
     transform: translateY(-1px);
     box-shadow: 0 0 26px rgba(255, 255, 255, 0.55);
+  }
+
+  /* Phones: centered title with the links centered beneath it. */
+  @media (max-width: 767px) {
+    .page-nav {
+      flex-direction: column;
+      justify-content: center;
+      padding: 1.25rem 1rem 0.5rem;
+    }
+    .page-nav .nav-links {
+      justify-content: center;
+    }
   }
 
   main {
@@ -277,6 +290,13 @@
       width: 100%;
       max-width: 420px;
       margin: 0 auto;
+      /* Fixed shape so the player doesn't collapse while the next clip
+         loads, which made the page jump on phones. */
+      aspect-ratio: 9 / 16;
+    }
+    .gallery-video video {
+      height: 100%;
+      object-fit: contain;
     }
     .gallery-carousel {
       width: 100%;
@@ -386,7 +406,7 @@
   </div>
 </div>
 
-<script src="calendar.js"></script>
+<script src="calendar.js?v=2"></script>
 <script>
 (function () {
   // Add more clips here as they're added to images/Gallery/.
@@ -440,10 +460,16 @@
   var nextBtn = document.getElementById("gallery-video-next");
 
   function show(i) {
+    // Keep the visitor where they were on the page while the clip swaps.
+    var scrollY = window.scrollY;
     index = (i + VIDEOS.length) % VIDEOS.length;
     source.src = VIDEOS[index];
     video.load();
     video.play().catch(function () {});
+    window.scrollTo(0, scrollY);
+    video.addEventListener("loadedmetadata", function () {
+      window.scrollTo(0, scrollY);
+    }, { once: true });
   }
 
   prevBtn.addEventListener("click", function () { show(index - 1); });
