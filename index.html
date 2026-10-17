@@ -127,10 +127,24 @@
   }
 
   #flashlight-nav a {
-    color: #ececec;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    color: #ffffff;
+    text-decoration: none;
     white-space: nowrap;
+  }
+
+  #flashlight-nav #book-now-link {
+    padding: 0.55rem 1.3rem;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #000000;
+    font-weight: 700;
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  #flashlight-nav #book-now-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 26px rgba(255, 255, 255, 0.55);
   }
 
   /* --- Event categories carousel ---------------------------------------- */
