@@ -322,7 +322,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <video id="gallery-video-player" controls loop autoplay muted preload="auto" playsinline>
-        <source src="images/Gallery/part-1-portrait.mp4" id="gallery-video-source" />
+        <source id="gallery-video-source" />
         Your browser doesn't support this video. <a href="images/Gallery/flip-it.mov">Download it</a> instead.
       </video>
       <button type="button" class="gallery-video-nav gallery-video-next" id="gallery-video-next" aria-label="Next video">
@@ -452,6 +452,13 @@
     "images/Gallery/IMG_4173.mov",
     "images/Gallery/IMG_4175.mov"
   ];
+  // Shuffle on every page load (Fisher-Yates) so visitors see a new order.
+  for (var i = VIDEOS.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = VIDEOS[i];
+    VIDEOS[i] = VIDEOS[j];
+    VIDEOS[j] = tmp;
+  }
   var index = 0;
 
   var video = document.getElementById("gallery-video-player");
@@ -474,6 +481,7 @@
 
   prevBtn.addEventListener("click", function () { show(index - 1); });
   nextBtn.addEventListener("click", function () { show(index + 1); });
+  show(0);
 
   // Photo carousel: splits the thumbnails into pages of 9 (a 3x3 grid).
   var PER_PAGE = 9;
