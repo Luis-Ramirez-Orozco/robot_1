@@ -14,11 +14,11 @@
   var WEEKEND_PRICE = 499;
 
   // Where "Inquire" sends the booking details.
-  var OWNER_EMAIL = "contactramirezl@gmail.com";
+  var OWNER_EMAIL = "labotshows@gmail.com";
 
   // Shown in the "Show Details" panel next to the calendar.
   // TODO: replace these placeholders with the real contact info and rate.
-  var CONTACT_EMAIL = "Email Coming Soon";
+  var CONTACT_EMAIL = "labotshows@gmail.com";
   var CONTACT_PHONE = "Phone Coming Soon";
   var MILE_SURCHARGE = "$3 per mile";
 
