@@ -17,9 +17,8 @@
   var OWNER_EMAIL = "labotshows@gmail.com";
 
   // Shown in the "Show Details" panel next to the calendar.
-  // TODO: replace these placeholders with the real contact info and rate.
   var CONTACT_EMAIL = "labotshows@gmail.com";
-  var CONTACT_PHONE = "Phone Coming Soon";
+  var CONTACT_PHONE = "949-310-0426";
   var MILE_SURCHARGE = "$3 per mile";
 
   // Add-ons offered at booking; maxQty caps each one's quantity counter.
@@ -107,7 +106,7 @@
       '  <section class="details-section">' +
       "    <h3>Travel</h3>" +
       "    <ul>" +
-      "      <li>First 30 miles within the Los Angeles area are free</li>" +
+      "      <li>Free within 30 miles of Irwindale hub</li>" +
       "      <li>" + MILE_SURCHARGE + " after that</li>" +
       "    </ul>" +
       "  </section>" +
