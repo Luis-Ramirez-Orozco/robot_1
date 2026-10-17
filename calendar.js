@@ -34,7 +34,8 @@
 
   function priceFor(date) {
     var day = date.getDay();
-    return (day === 0 || day === 6) ? WEEKEND_PRICE : WEEKDAY_PRICE;
+    // Fri, Sat, and Sun are weekend pricing.
+    return (day === 0 || day === 5 || day === 6) ? WEEKEND_PRICE : WEEKDAY_PRICE;
   }
 
   function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
