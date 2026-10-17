@@ -22,13 +22,13 @@
   var CONTACT_PHONE = "Phone Coming Soon";
   var MILE_SURCHARGE = "$3 per mile";
 
-  // Add-ons offered at booking.
+  // Add-ons offered at booking; maxQty caps each one's quantity counter.
   var ADDONS = [
-    { id: "co2-cannon", label: "CO2 Cannon", price: 100, img: "images/addons/web/co2-cannon.jpg" },
-    { id: "balloons", label: "Balloons", price: 25, img: "images/addons/web/balloons.jpg" },
-    { id: "led-noodles", label: "LED Noodles", price: 25, img: "images/addons/web/led-noodle.jpg" },
-    { id: "money-shooter", label: "Money Shooter", price: 25, img: "images/addons/web/money-shooter.jpg" },
-    { id: "extra-robot", label: "Extra Robot", price: 300, img: "images/Gallery/web/IMG_0019.jpg", hasQty: true }
+    { id: "co2-cannon", label: "CO2 Cannon", price: 100, maxQty: 10, img: "images/addons/web/co2-cannon.jpg" },
+    { id: "balloons", label: "50 Balloons", price: 25, maxQty: 10, img: "images/addons/web/balloons.jpg" },
+    { id: "led-noodles", label: "25 LED Noodles", price: 25, maxQty: 10, img: "images/addons/web/led-noodle.jpg" },
+    { id: "money-shooter", label: "Money Shooter", price: 25, maxQty: 10, img: "images/addons/web/money-shooter.jpg" },
+    { id: "extra-robot", label: "Extra Robot", price: 300, maxQty: 6, img: "images/Gallery/web/IMG_0019.jpg" }
   ];
 
   function priceFor(date) {
@@ -135,16 +135,14 @@
         '  <img class="addon-card-img" src="' + addon.img + '" alt="" loading="lazy" />' +
         '  <span class="addon-card-body">' +
         '    <span class="addon-card-label">' + addon.label + "</span>" +
-        '    <span class="addon-card-price">$' + addon.price + (addon.hasQty ? " each" : "") + "</span>" +
+        '    <span class="addon-card-price">$' + addon.price + " each" + "</span>" +
         "  </span>" +
-        (addon.hasQty
-          ? '  <span class="addon-qty" data-id="' + addon.id + '">' +
-            '    <span class="addon-qty-label">Quantity</span>' +
-            '    <button type="button" class="addon-qty-btn" data-step="-1" aria-label="Fewer">&minus;</button>' +
-            '    <span class="addon-qty-value" aria-live="polite">0</span>' +
-            '    <button type="button" class="addon-qty-btn" data-step="1" aria-label="More">+</button>' +
-            "  </span>"
-          : "") +
+        '  <span class="addon-qty" data-id="' + addon.id + '">' +
+        '    <span class="addon-qty-label">Quantity</span>' +
+        '    <button type="button" class="addon-qty-btn" data-step="-1" aria-label="Fewer">&minus;</button>' +
+        '    <span class="addon-qty-value" aria-live="polite">0</span>' +
+        '    <button type="button" class="addon-qty-btn" data-step="1" aria-label="More">+</button>' +
+        "  </span>" +
         "</label>"
       );
     }).join("");
@@ -229,7 +227,6 @@
     var addonsDone = addonsOverlay.querySelector("#addons-done");
     var addonsTotalLabel = addonsOverlay.querySelector("#addons-total-label");
     var addonsCheckboxes = Array.prototype.slice.call(addonsList.querySelectorAll(".addons-checkbox"));
-    var MAX_QTY = 10;
 
     var phoneOverlay = buildPhoneModal();
     var phoneClose = phoneOverlay.querySelector("#phone-close");
@@ -418,7 +415,7 @@
         lines.push("Add-ons:");
         chosenAddons.forEach(function (a) {
           var qty = selectedAddons[a.id];
-          lines.push("- " + a.label + (a.hasQty ? " x" + qty : "") + " ($" + a.price * qty + ")");
+          lines.push("- " + a.label + " x" + qty + " ($" + a.price * qty + ")");
         });
         lines.push("Add-ons total: $" + addonsTotal());
       }
@@ -476,7 +473,8 @@
       btn.addEventListener("click", function (e) {
         e.preventDefault();
         var id = btn.parentNode.dataset.id;
-        var qty = Math.max(0, Math.min(MAX_QTY, (selectedAddons[id] || 0) + Number(btn.dataset.step)));
+        var addon = ADDONS.filter(function (a) { return a.id === id; })[0];
+        var qty = Math.max(0, Math.min(addon.maxQty, (selectedAddons[id] || 0) + Number(btn.dataset.step)));
         selectedAddons[id] = qty;
         addonsList.querySelector('.addons-checkbox[data-id="' + id + '"]').checked = qty > 0;
         renderQuantities();

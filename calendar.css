@@ -261,8 +261,22 @@
   box-sizing: border-box;
 }
 
-.booking-details .calendar-modal-header {
+/* Centered card titles; the close button sits absolutely on the right. */
+.booking-layout .calendar-modal-header {
+  position: relative;
+  justify-content: center;
   min-height: 2.625rem;
+}
+
+.booking-layout .calendar-modal-header h2 {
+  text-align: center;
+}
+
+.booking-layout .calendar-modal-header .calendar-close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .details-section {
