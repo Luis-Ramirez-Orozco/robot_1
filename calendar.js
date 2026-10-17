@@ -20,6 +20,8 @@
   var CONTACT_EMAIL = "labotshows@gmail.com";
   var CONTACT_PHONE = "949-310-0426";
   var MILE_SURCHARGE = "$3 per mile";
+  // Pre-filled text when someone taps the phone number to send a message.
+  var SMS_MESSAGE = "Hi, I'd like to book a robot show";
 
   // Add-ons offered at booking; maxQty caps each one's quantity counter.
   var ADDONS = [
@@ -113,7 +115,7 @@
       '  <section class="details-section">' +
       "    <h3>Contact</h3>" +
       contactLine(CONTACT_EMAIL, CONTACT_EMAIL.indexOf("@") > -1 ? "mailto:" + CONTACT_EMAIL : null) +
-      contactLine(CONTACT_PHONE, /\d{7}/.test(CONTACT_PHONE.replace(/\D/g, "")) ? "tel:" + CONTACT_PHONE.replace(/[^\d+]/g, "") : null) +
+      contactLine(CONTACT_PHONE, /\d{7}/.test(CONTACT_PHONE.replace(/\D/g, "")) ? "sms:" + CONTACT_PHONE.replace(/[^\d+]/g, "") + "?&body=" + encodeURIComponent(SMS_MESSAGE) : null) +
       "  </section>" +
       "</aside>" +
       "</div>";
