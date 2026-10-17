@@ -59,10 +59,12 @@
   }
 
   // Contact info is a link only once it's a real email/number.
-  function contactLine(text, href) {
+  // An optional label (e.g. "Text:") is shown before the value.
+  function contactLine(text, href, label) {
+    var content = (label ? '<span class="details-contact-label">' + label + "</span> " : "") + text;
     return href
-      ? '<a class="details-contact" href="' + href + '">' + text + "</a>"
-      : '<span class="details-contact">' + text + "</span>";
+      ? '<a class="details-contact" href="' + href + '">' + content + "</a>"
+      : '<span class="details-contact">' + content + "</span>";
   }
 
   function buildCalendarModal() {
@@ -115,7 +117,7 @@
       '  <section class="details-section">' +
       "    <h3>Contact</h3>" +
       contactLine(CONTACT_EMAIL, CONTACT_EMAIL.indexOf("@") > -1 ? "mailto:" + CONTACT_EMAIL : null) +
-      contactLine(CONTACT_PHONE, /\d{7}/.test(CONTACT_PHONE.replace(/\D/g, "")) ? "sms:" + CONTACT_PHONE.replace(/[^\d+]/g, "") + "?&body=" + encodeURIComponent(SMS_MESSAGE) : null) +
+      contactLine(CONTACT_PHONE, /\d{7}/.test(CONTACT_PHONE.replace(/\D/g, "")) ? "sms:" + CONTACT_PHONE.replace(/[^\d+]/g, "") + "?&body=" + encodeURIComponent(SMS_MESSAGE) : null, "Text:") +
       "  </section>" +
       "</aside>" +
       "</div>";

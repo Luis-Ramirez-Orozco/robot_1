@@ -316,6 +316,10 @@
   overflow-wrap: anywhere;
 }
 
+.details-contact-label {
+  color: #8a8a8a;
+}
+
 .details-contact:hover {
   text-decoration: underline;
 }
