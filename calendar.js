@@ -18,7 +18,7 @@
 
   // Shown in the "Show Details" panel next to the calendar.
   var CONTACT_EMAIL = "labotshows@gmail.com";
-  var CONTACT_PHONE = "949-310-0426";
+  var CONTACT_PHONE = "949-395-0250";
   var MILE_SURCHARGE = "$3 per mile";
   // Pre-filled text when someone taps the phone number to send a message.
   var SMS_MESSAGE = "Hi, I'd like to book a robot show";
