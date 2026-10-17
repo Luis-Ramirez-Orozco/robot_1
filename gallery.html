@@ -235,6 +235,39 @@
     background: rgba(0, 0, 0, 0.75);
   }
 
+  /* Desktop: size the video and 3x3 grid so the whole page fits one screen.
+     --thumb is the largest square that fits both the height and the width. */
+  @media (min-width: 769px) {
+    main {
+      max-width: none;
+      padding-bottom: 1.5rem;
+    }
+    .gallery-layout {
+      --gap: 0.625rem;
+      --pager: 3.5rem;
+      --avail-h: calc(100vh - 6.875rem);
+      --avail-w: calc(100vw - 3.5rem - 1.5rem);
+      --thumb: min(
+        calc((var(--avail-h) - 2 * var(--gap) - var(--pager)) / 3),
+        calc((var(--avail-w) - 2 * var(--gap) - 0.5625 * (2 * var(--gap) + var(--pager))) / 4.6875)
+      );
+      justify-content: center;
+    }
+    .gallery-video {
+      flex: 0 0 auto;
+      height: calc(3 * var(--thumb) + 2 * var(--gap) + var(--pager));
+      aspect-ratio: 9 / 16;
+    }
+    .gallery-video video {
+      height: 100%;
+      object-fit: contain;
+    }
+    .gallery-carousel {
+      flex: 0 0 auto;
+      width: calc(3 * var(--thumb) + 2 * var(--gap));
+    }
+  }
+
   @media (max-width: 768px) {
     .gallery-layout {
       flex-direction: column;

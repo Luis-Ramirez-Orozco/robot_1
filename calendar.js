@@ -16,13 +16,19 @@
   // Where "Inquire" sends the booking details.
   var OWNER_EMAIL = "contactramirezl@gmail.com";
 
+  // Shown in the "Show Details" panel next to the calendar.
+  // TODO: replace these placeholders with the real contact info and rate.
+  var CONTACT_EMAIL = "[your-email@example.com]";
+  var CONTACT_PHONE = "[(555) 555-5555]";
+  var MILE_SURCHARGE = "[$X]";
+
   // Add-ons offered at booking.
   var ADDONS = [
     { id: "co2-cannon", label: "CO2 Cannon", price: 100, img: "images/addons/web/co2-cannon.jpg" },
     { id: "balloons", label: "Balloons", price: 25, img: "images/addons/web/balloons.jpg" },
     { id: "led-noodles", label: "LED Noodles", price: 25, img: "images/addons/web/led-noodle.jpg" },
     { id: "money-shooter", label: "Money Shooter", price: 25, img: "images/addons/web/money-shooter.jpg" },
-    { id: "extra-robot", label: "Extra Robot", price: 300, img: "images/Gallery/web/IMG_0019.jpg" }
+    { id: "extra-robot", label: "Extra Robot", price: 300, img: "images/Gallery/web/IMG_0019.jpg", hasQty: true }
   ];
 
   function priceFor(date) {
@@ -54,9 +60,10 @@
   function buildCalendarModal() {
     var overlay = document.createElement("div");
     overlay.id = "calendar-overlay";
-    overlay.className = "calendar-overlay";
+    overlay.className = "calendar-overlay booking-overlay";
     overlay.setAttribute("aria-hidden", "true");
     overlay.innerHTML =
+      '<div class="booking-layout" id="booking-layout">' +
       '<div class="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-title">' +
       '  <div class="calendar-modal-header">' +
       '    <h2 id="calendar-title">Book a Date</h2>' +
@@ -77,6 +84,32 @@
       '    <button type="button" class="calendar-addons-btn" id="calendar-addons-btn">Add-ons</button>' +
       '    <button type="button" class="calendar-confirm-btn" id="calendar-inquire-btn" disabled>Inquire</button>' +
       "  </div>" +
+      "</div>" +
+      '<aside class="calendar-modal booking-details" aria-labelledby="details-title">' +
+      '  <div class="calendar-modal-header">' +
+      '    <h2 id="details-title">Show Details</h2>' +
+      "  </div>" +
+      '  <section class="details-section">' +
+      "    <h3>The Show</h3>" +
+      "    <p><strong>45 minutes</strong> total</p>" +
+      "    <ul>" +
+      "      <li>30 minutes of dancing</li>" +
+      "      <li>15 minutes of photos</li>" +
+      "    </ul>" +
+      "  </section>" +
+      '  <section class="details-section">' +
+      "    <h3>Travel</h3>" +
+      "    <ul>" +
+      "      <li>First 30 miles within the Los Angeles area are free</li>" +
+      "      <li>" + MILE_SURCHARGE + " per mile after that</li>" +
+      "    </ul>" +
+      "  </section>" +
+      '  <section class="details-section">' +
+      "    <h3>Contact</h3>" +
+      '    <a class="details-contact" href="mailto:' + CONTACT_EMAIL + '">' + CONTACT_EMAIL + "</a>" +
+      '    <a class="details-contact" href="tel:' + CONTACT_PHONE.replace(/[^\d+]/g, "") + '">' + CONTACT_PHONE + "</a>" +
+      "  </section>" +
+      "</aside>" +
       "</div>";
     document.body.appendChild(overlay);
     return overlay;
@@ -95,8 +128,16 @@
         '  <img class="addon-card-img" src="' + addon.img + '" alt="" loading="lazy" />' +
         '  <span class="addon-card-body">' +
         '    <span class="addon-card-label">' + addon.label + "</span>" +
-        '    <span class="addon-card-price">$' + addon.price + "</span>" +
+        '    <span class="addon-card-price">$' + addon.price + (addon.hasQty ? " each" : "") + "</span>" +
         "  </span>" +
+        (addon.hasQty
+          ? '  <span class="addon-qty" data-id="' + addon.id + '">' +
+            '    <span class="addon-qty-label">Quantity</span>' +
+            '    <button type="button" class="addon-qty-btn" data-step="-1" aria-label="Fewer">&minus;</button>' +
+            '    <span class="addon-qty-value" aria-live="polite">0</span>' +
+            '    <button type="button" class="addon-qty-btn" data-step="1" aria-label="More">+</button>' +
+            "  </span>"
+          : "") +
         "</label>"
       );
     }).join("");
@@ -165,6 +206,7 @@
     if (!bookNowLinks.length) return;
 
     var overlay = buildCalendarModal();
+    var bookingLayout = overlay.querySelector("#booking-layout");
     var monthLabel = overlay.querySelector("#calendar-month-label");
     var weekdaysEl = overlay.querySelector("#calendar-weekdays");
     var gridEl = overlay.querySelector("#calendar-grid");
@@ -180,6 +222,7 @@
     var addonsDone = addonsOverlay.querySelector("#addons-done");
     var addonsTotalLabel = addonsOverlay.querySelector("#addons-total-label");
     var addonsCheckboxes = Array.prototype.slice.call(addonsList.querySelectorAll(".addons-checkbox"));
+    var MAX_QTY = 10;
 
     var phoneOverlay = buildPhoneModal();
     var phoneClose = phoneOverlay.querySelector("#phone-close");
@@ -242,13 +285,19 @@
 
     function addonsTotal() {
       return ADDONS.reduce(function (sum, addon) {
-        return sum + (selectedAddons[addon.id] ? addon.price : 0);
+        return sum + addon.price * (selectedAddons[addon.id] || 0);
       }, 0);
     }
 
     function renderAddonsButton() {
       var count = Object.keys(selectedAddons).filter(function (id) { return selectedAddons[id]; }).length;
       addonsBtn.textContent = count ? "Add-ons · $" + addonsTotal() : "Add-ons";
+    }
+
+    function renderQuantities() {
+      Array.prototype.forEach.call(addonsList.querySelectorAll(".addon-qty"), function (el) {
+        el.querySelector(".addon-qty-value").textContent = selectedAddons[el.dataset.id] || 0;
+      });
     }
 
     function renderAddonsTotal() {
@@ -260,6 +309,7 @@
       selectedDate = null;
       selectedAddons = {};
       addonsCheckboxes.forEach(function (checkbox) { checkbox.checked = false; });
+      renderQuantities();
       renderAddonsButton();
       renderAddonsTotal();
       nameInput.value = "";
@@ -359,7 +409,10 @@
       if (chosenAddons.length) {
         lines.push("");
         lines.push("Add-ons:");
-        chosenAddons.forEach(function (a) { lines.push("- " + a.label + " ($" + a.price + ")"); });
+        chosenAddons.forEach(function (a) {
+          var qty = selectedAddons[a.id];
+          lines.push("- " + a.label + (a.hasQty ? " x" + qty : "") + " ($" + a.price * qty + ")");
+        });
         lines.push("Add-ons total: $" + addonsTotal());
       }
 
@@ -394,7 +447,7 @@
     });
     closeBtn.addEventListener("click", closeCalendar);
     overlay.addEventListener("click", function (e) {
-      if (e.target === overlay) closeCalendar();
+      if (e.target === overlay || e.target === bookingLayout) closeCalendar();
     });
     inquireBtn.addEventListener("click", openPhone);
 
@@ -406,7 +459,20 @@
     });
     addonsCheckboxes.forEach(function (checkbox) {
       checkbox.addEventListener("change", function () {
-        selectedAddons[checkbox.dataset.id] = checkbox.checked;
+        var id = checkbox.dataset.id;
+        selectedAddons[id] = checkbox.checked ? Math.max(selectedAddons[id] || 0, 1) : 0;
+        renderQuantities();
+        renderAddonsTotal();
+      });
+    });
+    Array.prototype.forEach.call(addonsList.querySelectorAll(".addon-qty-btn"), function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = btn.parentNode.dataset.id;
+        var qty = Math.max(0, Math.min(MAX_QTY, (selectedAddons[id] || 0) + Number(btn.dataset.step)));
+        selectedAddons[id] = qty;
+        addonsList.querySelector('.addons-checkbox[data-id="' + id + '"]').checked = qty > 0;
+        renderQuantities();
         renderAddonsTotal();
       });
     });
