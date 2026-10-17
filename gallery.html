@@ -109,12 +109,75 @@
     right: 0.6rem;
   }
 
-  .gallery-grid {
+  .gallery-carousel {
     flex: 1;
+    min-width: 0;
+  }
+
+  .gallery-viewport {
+    overflow: hidden;
+  }
+
+  .gallery-grid {
+    display: flex;
+    transition: transform 0.45s ease;
+  }
+
+  .gallery-page {
+    flex: 0 0 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     grid-auto-rows: min-content;
     gap: 0.625rem;
+  }
+
+  .gallery-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .gallery-pager-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ececec;
+    cursor: pointer;
+  }
+
+  .gallery-pager-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .gallery-pager-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .gallery-dots {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .gallery-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+  }
+
+  .gallery-dot.is-active {
+    background: #ffffff;
   }
 
   .gallery-thumb {
@@ -182,7 +245,7 @@
       max-width: 420px;
       margin: 0 auto;
     }
-    .gallery-grid {
+    .gallery-carousel {
       width: 100%;
     }
   }
@@ -214,7 +277,9 @@
       </button>
     </div>
 
-    <div class="gallery-grid">
+    <div class="gallery-carousel">
+      <div class="gallery-viewport">
+    <div class="gallery-grid" id="gallery-track">
       <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_0019.jpeg">
         <img src="images/Gallery/web/IMG_0019.jpg" alt="Robot in LED costume, photo 1" loading="lazy" />
       </button>
@@ -266,6 +331,17 @@
       <button type="button" class="gallery-thumb" data-full="images/Gallery/IMG_4084.jpg">
         <img src="images/Gallery/web/IMG_4084.jpg" alt="Robot in LED costume, photo 17" loading="lazy" />
       </button>
+    </div>
+      </div>
+      <div class="gallery-pager" id="gallery-pager">
+        <button type="button" class="gallery-pager-btn" id="gallery-prev" aria-label="Previous photos">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="gallery-dots" id="gallery-dots"></div>
+        <button type="button" class="gallery-pager-btn" id="gallery-next" aria-label="Next photos">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 </main>
@@ -339,6 +415,46 @@
 
   prevBtn.addEventListener("click", function () { show(index - 1); });
   nextBtn.addEventListener("click", function () { show(index + 1); });
+
+  // Photo carousel: splits the thumbnails into pages of 9 (a 3x3 grid).
+  var PER_PAGE = 9;
+  var track = document.getElementById("gallery-track");
+  var pager = document.getElementById("gallery-pager");
+  var dotsWrap = document.getElementById("gallery-dots");
+  var pagePrev = document.getElementById("gallery-prev");
+  var pageNext = document.getElementById("gallery-next");
+  var allThumbs = Array.prototype.slice.call(track.querySelectorAll(".gallery-thumb"));
+  var pageCount = Math.ceil(allThumbs.length / PER_PAGE);
+  var page = 0;
+  var dots = [];
+
+  for (var p = 0; p < pageCount; p++) {
+    var pageEl = document.createElement("div");
+    pageEl.className = "gallery-page";
+    allThumbs.slice(p * PER_PAGE, (p + 1) * PER_PAGE).forEach(function (t) { pageEl.appendChild(t); });
+    track.appendChild(pageEl);
+
+    var dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "gallery-dot";
+    dot.setAttribute("aria-label", "Photo page " + (p + 1));
+    dot.addEventListener("click", showPage.bind(null, p));
+    dotsWrap.appendChild(dot);
+    dots.push(dot);
+  }
+
+  function showPage(i) {
+    page = Math.max(0, Math.min(pageCount - 1, i));
+    track.style.transform = "translateX(-" + page * 100 + "%)";
+    pagePrev.disabled = page === 0;
+    pageNext.disabled = page === pageCount - 1;
+    dots.forEach(function (d, j) { d.classList.toggle("is-active", j === page); });
+  }
+
+  pagePrev.addEventListener("click", function () { showPage(page - 1); });
+  pageNext.addEventListener("click", function () { showPage(page + 1); });
+  if (pageCount < 2) pager.style.display = "none";
+  showPage(0);
 
   // Photo lightbox: opens full-res images in-page instead of a new tab.
   var lightbox = document.getElementById("photo-lightbox");
