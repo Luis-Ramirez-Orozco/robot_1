@@ -240,7 +240,7 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* --- Booking layout: calendar in the first third, details in the second -- */
+/* --- Booking layout: calendar and show details side by side, centered ---- */
 
 .booking-overlay {
   align-items: flex-start;
@@ -249,7 +249,8 @@
 
 .booking-layout {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 440px));
+  justify-content: center;
   gap: 1.5rem;
   width: 100%;
   margin: auto 0;

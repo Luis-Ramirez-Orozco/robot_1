@@ -18,9 +18,9 @@
 
   // Shown in the "Show Details" panel next to the calendar.
   // TODO: replace these placeholders with the real contact info and rate.
-  var CONTACT_EMAIL = "[your-email@example.com]";
-  var CONTACT_PHONE = "[(555) 555-5555]";
-  var MILE_SURCHARGE = "[$X]";
+  var CONTACT_EMAIL = "Email Coming Soon";
+  var CONTACT_PHONE = "Phone Coming Soon";
+  var MILE_SURCHARGE = "$3 per mile";
 
   // Add-ons offered at booking.
   var ADDONS = [
@@ -55,6 +55,13 @@
       days.push(d);
     }
     return days;
+  }
+
+  // Contact info is a link only once it's a real email/number.
+  function contactLine(text, href) {
+    return href
+      ? '<a class="details-contact" href="' + href + '">' + text + "</a>"
+      : '<span class="details-contact">' + text + "</span>";
   }
 
   function buildCalendarModal() {
@@ -101,13 +108,13 @@
       "    <h3>Travel</h3>" +
       "    <ul>" +
       "      <li>First 30 miles within the Los Angeles area are free</li>" +
-      "      <li>" + MILE_SURCHARGE + " per mile after that</li>" +
+      "      <li>" + MILE_SURCHARGE + " after that</li>" +
       "    </ul>" +
       "  </section>" +
       '  <section class="details-section">' +
       "    <h3>Contact</h3>" +
-      '    <a class="details-contact" href="mailto:' + CONTACT_EMAIL + '">' + CONTACT_EMAIL + "</a>" +
-      '    <a class="details-contact" href="tel:' + CONTACT_PHONE.replace(/[^\d+]/g, "") + '">' + CONTACT_PHONE + "</a>" +
+      contactLine(CONTACT_EMAIL, CONTACT_EMAIL.indexOf("@") > -1 ? "mailto:" + CONTACT_EMAIL : null) +
+      contactLine(CONTACT_PHONE, /\d{7}/.test(CONTACT_PHONE.replace(/\D/g, "")) ? "tel:" + CONTACT_PHONE.replace(/[^\d+]/g, "") : null) +
       "  </section>" +
       "</aside>" +
       "</div>";
