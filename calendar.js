@@ -434,6 +434,19 @@
 
     document.addEventListener("keydown", onGlobalKeydown);
 
+    // Tell the page whenever the booking flow opens or fully closes, so
+    // heavy background animation (the homepage hero) can pause meanwhile.
+    var bookingWasOpen = false;
+    var openObserver = new MutationObserver(function () {
+      var open = !!topOpenOverlay();
+      if (open === bookingWasOpen) return;
+      bookingWasOpen = open;
+      document.dispatchEvent(new CustomEvent("bookingchange", { detail: { open: open } }));
+    });
+    [overlay, addonsOverlay, phoneOverlay, thankYouOverlay].forEach(function (el) {
+      openObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+    });
+
     bookNowLinks.forEach(function (link) {
       link.addEventListener("click", function (e) {
         e.preventDefault();

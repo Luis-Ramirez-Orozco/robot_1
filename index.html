@@ -766,6 +766,9 @@
   var strobeClock = 0;
   var last = 0;
   var raf = 0;
+  // Paused while the booking popup is open: animating the wall, masks and
+  // strobe under its blurred backdrop makes the popup flicker.
+  var bookingOpen = false;
 
   function resize() {
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -850,11 +853,11 @@
       Math.abs(on - presence) > 0.001 ||
       Math.abs(tx - light.x) > 0.0005 ||
       Math.abs(ty - light.y) > 0.0005;
-    if ((moving || easing) && !document.hidden) raf = requestAnimationFrame(draw);
+    if ((moving || easing) && !document.hidden && !bookingOpen) raf = requestAnimationFrame(draw);
   }
 
   function kick() {
-    if (!raf && !document.hidden) raf = requestAnimationFrame(draw);
+    if (!raf && !document.hidden && !bookingOpen) raf = requestAnimationFrame(draw);
   }
   kick();
 
@@ -876,6 +879,17 @@
 
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    } else {
+      last = 0;
+      kick();
+    }
+  });
+
+  document.addEventListener("bookingchange", function (e) {
+    bookingOpen = e.detail.open;
+    if (bookingOpen) {
       cancelAnimationFrame(raf);
       raf = 0;
     } else {

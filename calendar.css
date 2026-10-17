@@ -330,6 +330,15 @@
 
 /* --- Add-ons modal, stacked above the calendar modal ------------------ */
 
+/* Add-ons and contact popups always open on top of the calendar, which
+   already blurs the page; a second stacked backdrop blur is expensive and
+   makes the page flicker while typing. */
+#addons-overlay,
+#phone-overlay {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 #addons-overlay {
   z-index: 110;
 }
